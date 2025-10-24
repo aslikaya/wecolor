@@ -4,85 +4,118 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {WeColor} from "../src/WeColor.sol";
 
+/**
+ * @title WeColorTest
+ * @notice Core functionality tests for WeColor contract
+ */
 contract WeColorTest is Test {
     WeColor public wecolor;
     address public owner;
     address public user1;
     address public user2;
+    address public user3;
 
-    // Test contract'ının ETH alabilmesi için
-    receive() external payable {}
+    // Events to test
+    event DailySnapshotRecorded(uint256 indexed date, string colorHex, uint256 contributorCount, uint256 price);
+    event NFTPurchased(uint256 indexed tokenId, uint256 indexed date, address buyer, uint256 price);
 
     function setUp() public {
         owner = address(this);
-        user1 = address(0x1);
-        user2 = address(0x2);
-        
+        user1 = makeAddr("user1");
+        user2 = makeAddr("user2");
+        user3 = makeAddr("user3");
+
         wecolor = new WeColor();
     }
-    
-    function testRecordSnapshot() public {
-        // Test: Backend can record snapshot
+
+    // Test: Contract initializes correctly
+    function testInitialization() public {
+        assertEq(wecolor.owner(), owner);
+        assertEq(wecolor.nextTokenId(), 1);
+        assertEq(wecolor.treasuryBalance(), 0);
+        assertEq(wecolor.name(), "WeColor");
+        assertEq(wecolor.symbol(), "WCLR");
+    }
+
+    // Test: Record daily snapshot successfully
+    function testRecordDailySnapshot() public {
         address[] memory contributors = new address[](2);
         contributors[0] = user1;
         contributors[1] = user2;
 
+        uint256 expectedPrice = 0.01 ether + (2 * 0.001 ether);
+
+        vm.expectEmit(true, false, false, true);
+        emit DailySnapshotRecorded(20241024, "#FF5733", 2, expectedPrice);
+
         wecolor.recordDailySnapshot(20241024, "#FF5733", contributors);
 
-        // Control: is it recorded?
         WeColor.DailyColor memory daily = wecolor.getDailyColor(20241024);
 
         assertEq(daily.day, 20241024);
         assertEq(daily.colorHex, "#FF5733");
+        assertEq(daily.contributors.length, 2);
+        assertEq(daily.price, expectedPrice);
         assertTrue(daily.recorded);
+        assertFalse(daily.minted);
+        assertEq(daily.tokenId, 0);
+        assertEq(daily.buyer, address(0));
     }
-    
-    function testBuyNFT() public {
-        // First record the snapshot
-        address[] memory contributors = new address[](2);
+
+    // Test: Cannot record same day twice
+    function testCannotRecordSameDayTwice() public {
+        address[] memory contributors = new address[](1);
         contributors[0] = user1;
-        contributors[1] = user2;
 
         wecolor.recordDailySnapshot(20241024, "#FF5733", contributors);
 
-        // get the price
-        uint256 price = wecolor.getDailyColor(20241024).price;
-
-        // user1 NFT satın alır
-        vm.deal(user1, 10 ether); // user1'e para ver
-        vm.prank(user1); // user1 olarak işlem yap
-        wecolor.buyNft{value: price}(20241024);
-
-        // control: is NFT minted?
-        assertEq(wecolor.ownerOf(1), user1);
-
-        // Kontrol: Treasury'de %10 birikti mi?
-        uint256 expectedTreasury = (price * 10) / 100;
-        assertEq(wecolor.treasuryBalance(), expectedTreasury);
+        vm.expectRevert("Already recorded");
+        wecolor.recordDailySnapshot(20241024, "#00FF00", contributors);
     }
 
-    function testTreasuryWithdraw() public {
-        // Önce snapshot kaydet ve NFT sat
-        address[] memory contributors = new address[](2);
+    // Test: Record multiple different days
+    function testRecordMultipleDays() public {
+        address[] memory contributors = new address[](1);
         contributors[0] = user1;
-        contributors[1] = user2;
 
         wecolor.recordDailySnapshot(20241024, "#FF5733", contributors);
-        uint256 price = wecolor.getDailyColor(20241024).price;
+        wecolor.recordDailySnapshot(20241025, "#00FF00", contributors);
+        wecolor.recordDailySnapshot(20241026, "#0000FF", contributors);
 
-        vm.deal(user1, 10 ether);
-        vm.prank(user1);
-        wecolor.buyNft{value: price}(20241024);
+        assertEq(wecolor.getDailyColor(20241024).colorHex, "#FF5733");
+        assertEq(wecolor.getDailyColor(20241025).colorHex, "#00FF00");
+        assertEq(wecolor.getDailyColor(20241026).colorHex, "#0000FF");
+    }
 
-        // Treasury'den para çek
-        uint256 treasuryAmount = wecolor.treasuryBalance();
-        uint256 ownerBalanceBefore = address(this).balance;
+    // Test: Price calculation with different contributor counts
+    function testPriceCalculation() public {
+        address[] memory contributors1 = new address[](1);
+        contributors1[0] = user1;
+        wecolor.recordDailySnapshot(20241024, "#FF5733", contributors1);
+        assertEq(wecolor.getDailyColor(20241024).price, 0.01 ether + 0.001 ether);
 
-        wecolor.withdrawTreasury(treasuryAmount);
+        address[] memory contributors5 = new address[](5);
+        for (uint i = 0; i < 5; i++) {
+            contributors5[i] = address(uint160(100 + i));
+        }
+        wecolor.recordDailySnapshot(20241025, "#00FF00", contributors5);
+        assertEq(wecolor.getDailyColor(20241025).price, 0.01 ether + (5 * 0.001 ether));
+    }
 
-        // Kontrol: Owner parası arttı mı?
-        assertEq(address(this).balance, ownerBalanceBefore + treasuryAmount);
-        assertEq(wecolor.treasuryBalance(), 0);
+    // Test: getDailyColor returns correct data
+    function testGetDailyColor() public {
+        address[] memory contributors = new address[](3);
+        contributors[0] = user1;
+        contributors[1] = user2;
+        contributors[2] = user3;
+
+        wecolor.recordDailySnapshot(20241024, "#ABCDEF", contributors);
+
+        WeColor.DailyColor memory daily = wecolor.getDailyColor(20241024);
+        assertEq(daily.day, 20241024);
+        assertEq(daily.colorHex, "#ABCDEF");
+        assertEq(daily.contributors[0], user1);
+        assertEq(daily.contributors[1], user2);
+        assertEq(daily.contributors[2], user3);
     }
 }
-

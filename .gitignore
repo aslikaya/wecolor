@@ -43,3 +43,7 @@ next-env.d.ts
 # Compiler files
 cache/
 out/
+
+# Coverage reports
+lcov.info
+coverage/
