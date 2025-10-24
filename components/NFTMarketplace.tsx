@@ -6,6 +6,7 @@ import styles from "./NFTMarketplace.module.css";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0xbe9c142865748C7ea4699d6E2Dc0f4bc438977Ee";
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.base.org";
+const REQUIRED_CHAIN_ID = 84532; // Base Sepolia
 
 const WECOLOR_ABI = [
   "function getDailyColor(uint256 date) external view returns (tuple(uint256 day, string colorHex, address[] contributors, bool minted, uint256 price, address buyer, uint256 tokenId, bool recorded))",
@@ -99,7 +100,48 @@ export default function NFTMarketplace() {
     setBuying(dateKey);
 
     try {
+      // Check if on correct network
       const provider = new ethers.BrowserProvider(window.ethereum);
+      const network = await provider.getNetwork();
+
+      if (Number(network.chainId) !== REQUIRED_CHAIN_ID) {
+        alert("Please switch to Base Sepolia network");
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x14a34' }], // 84532 in hex
+          });
+        } catch (switchError: any) {
+          // This error code indicates that the chain has not been added to MetaMask
+          if (switchError.code === 4902) {
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x14a34',
+                  chainName: 'Base Sepolia',
+                  nativeCurrency: {
+                    name: 'ETH',
+                    symbol: 'ETH',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://sepolia.base.org'],
+                  blockExplorerUrls: ['https://sepolia.basescan.org']
+                }]
+              });
+            } catch (addError) {
+              console.error("Error adding network:", addError);
+              setBuying(null);
+              return;
+            }
+          } else {
+            console.error("Error switching network:", switchError);
+            setBuying(null);
+            return;
+          }
+        }
+      }
+
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, WECOLOR_ABI, signer);
 
