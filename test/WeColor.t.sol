@@ -29,7 +29,7 @@ contract WeColorTest is Test {
     }
 
     // Test: Contract initializes correctly
-    function testInitialization() public {
+    function testInitialization() public view {
         assertEq(wecolor.owner(), owner);
         assertEq(wecolor.nextTokenId(), 1);
         assertEq(wecolor.treasuryBalance(), 0);

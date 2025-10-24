@@ -72,7 +72,7 @@ contract WeColorAccessTest is Test {
     }
 
     // Test: Owner is set correctly on deployment
-    function testOwnerSetOnDeployment() public {
+    function testOwnerSetOnDeployment() public view {
         assertEq(wecolor.owner(), owner);
     }
 

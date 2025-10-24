@@ -175,7 +175,7 @@ contract WeColorEdgeCasesTest is Test {
     }
 
     // Test: getDailyColor for unrecorded date returns empty struct
-    function testGetDailyColorUnrecordedDate() public {
+    function testGetDailyColorUnrecordedDate() public view {
         WeColor.DailyColor memory daily = wecolor.getDailyColor(99999999);
 
         assertEq(daily.day, 0);
@@ -186,7 +186,7 @@ contract WeColorEdgeCasesTest is Test {
     }
 
     // Test: TokenIdToDate for unminted token returns 0
-    function testTokenIdToDateUnminted() public {
+    function testTokenIdToDateUnminted() public view {
         assertEq(wecolor.tokenIdToDate(999), 0);
     }
 
