@@ -4,12 +4,13 @@ pragma solidity ^0.8.20;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title WeColor
  * @notice Daily collective color NFT contract
  */
-contract WeColor is ERC721 {
+contract WeColor is ERC721, ReentrancyGuard {
     address public owner;
     uint256 public nextTokenId;
     uint256 public pricePerContributor = 0.001 ether;
@@ -20,6 +21,7 @@ contract WeColor is ERC721 {
     DailyColor[] dailyColors;
     mapping(uint256 => DailyColor) public dateToDailyColor;
     mapping(uint256 => uint256) public tokenIdToDate;
+    mapping(address => uint256) public pendingRewards;
 
     struct DailyColor {
         uint256 day;
@@ -35,7 +37,8 @@ contract WeColor is ERC721 {
     // Events
     event DailySnapshotRecorded(uint256 indexed date, string colorHex, uint256 contributorCount, uint256 price);
     event NFTPurchased(uint256 indexed tokenId, uint256 indexed date, address buyer, uint256 price);
-    event RewardDistributed(uint256 indexed date, address indexed contributor, uint256 amount);
+    event RewardAllocated(uint256 indexed date, address indexed contributor, uint256 amount);
+    event RewardClaimed(address indexed contributor, uint256 amount);
     event TreasuryWithdrawn(address indexed owner, uint256 amount);
     event BasePriceUpdated(uint256 oldPrice, uint256 newPrice);
     event PricePerContributorUpdated(uint256 oldPrice, uint256 newPrice);
@@ -47,7 +50,7 @@ contract WeColor is ERC721 {
         nextTokenId = 1;
     }
 
-    function buyNft(uint256 date) external payable {
+    function buyNft(uint256 date) external payable nonReentrant {
         DailyColor storage dateColor = dateToDailyColor[date];
         require(!dateColor.minted, "Already minted");
         require(msg.value >= dateColor.price, "Insufficient funds");
@@ -60,10 +63,10 @@ contract WeColor is ERC721 {
         emit NFTPurchased(nextTokenId, date, msg.sender, msg.value);
 
         nextTokenId++;
-        distributePayment(date);
+        allocatePayment(date);
     }
 
-    function distributePayment(uint256 date) private {
+    function allocatePayment(uint256 date) private {
         DailyColor storage dateColor = dateToDailyColor[date];
         uint256 totalContributors = dateColor.contributors.length;
 
@@ -77,11 +80,22 @@ contract WeColor is ERC721 {
 
         for (uint256 i = 0; i < totalContributors; i++) {
             address contributor = dateColor.contributors[i];
-            (bool sent, ) = contributor.call{value: paymentPerPerson}("");
-            require(sent, "Failed to Send ETH");
-
-            emit RewardDistributed(date, contributor, paymentPerPerson);
+            pendingRewards[contributor] += paymentPerPerson;
+            emit RewardAllocated(date, contributor, paymentPerPerson);
         }
+    }
+
+    /// @notice Contributors can claim their accumulated rewards
+    function claimReward() external nonReentrant {
+        uint256 amount = pendingRewards[msg.sender];
+        require(amount > 0, "No rewards to claim");
+
+        pendingRewards[msg.sender] = 0;
+
+        (bool sent, ) = msg.sender.call{value: amount}("");
+        require(sent, "Failed to send reward");
+
+        emit RewardClaimed(msg.sender, amount);
     }
 
     function recordDailySnapshot(
@@ -198,7 +212,7 @@ contract WeColor is ERC721 {
     }
 
     /// @notice Owner to withdraw money from treasury
-    function withdrawTreasury(uint256 amount) external onlyOwner {
+    function withdrawTreasury(uint256 amount) external onlyOwner nonReentrant {
         require(amount <= treasuryBalance, "Insufficient treasury balance");
         treasuryBalance -= amount;
 

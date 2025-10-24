@@ -150,8 +150,6 @@ contract WeColorConfigTest is Test {
         address buyer = makeAddr("buyer");
         vm.deal(buyer, 10 ether);
 
-        uint256 contributor1BalanceBefore = contributor1.balance;
-
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
@@ -159,8 +157,14 @@ contract WeColorConfigTest is Test {
         uint256 expectedTreasury = (price * 50) / 100;
         assertEq(wecolor.treasuryBalance(), expectedTreasury);
 
-        // Contributor should have 50%
+        // Contributor should have 50% pending
         uint256 expectedContributorPayment = price - expectedTreasury;
+        assertEq(wecolor.pendingRewards(contributor1), expectedContributorPayment);
+
+        // Claim and verify balance
+        uint256 contributor1BalanceBefore = contributor1.balance;
+        vm.prank(contributor1);
+        wecolor.claimReward();
         assertEq(contributor1.balance, contributor1BalanceBefore + expectedContributorPayment);
     }
 

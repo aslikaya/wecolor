@@ -16,7 +16,8 @@ contract WeColorPaymentTest is Test {
     address public contributor2;
     address public contributor3;
 
-    event RewardDistributed(uint256 indexed date, address indexed contributor, uint256 amount);
+    event RewardAllocated(uint256 indexed date, address indexed contributor, uint256 amount);
+    event RewardClaimed(address indexed contributor, uint256 amount);
     event TreasuryWithdrawn(address indexed owner, uint256 amount);
 
     // Allow test contract to receive ETH
@@ -32,7 +33,7 @@ contract WeColorPaymentTest is Test {
         wecolor = new WeColor();
     }
 
-    // Test: Payment distribution to contributors
+    // Test: Payment allocation to contributors (not yet claimed)
     function testPaymentDistribution() public {
         address[] memory contributors = new address[](2);
         contributors[0] = contributor1;
@@ -43,9 +44,6 @@ contract WeColorPaymentTest is Test {
 
         vm.deal(buyer, 10 ether);
 
-        uint256 contributor1BalanceBefore = contributor1.balance;
-        uint256 contributor2BalanceBefore = contributor2.balance;
-
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
@@ -54,8 +52,24 @@ contract WeColorPaymentTest is Test {
         uint256 distributionAmount = price - treasuryAmount;
         uint256 paymentPerPerson = distributionAmount / 2;
 
+        // Check pending rewards are allocated
+        assertEq(wecolor.pendingRewards(contributor1), paymentPerPerson);
+        assertEq(wecolor.pendingRewards(contributor2), paymentPerPerson);
+
+        // Claim rewards
+        uint256 contributor1BalanceBefore = contributor1.balance;
+        uint256 contributor2BalanceBefore = contributor2.balance;
+
+        vm.prank(contributor1);
+        wecolor.claimReward();
+
+        vm.prank(contributor2);
+        wecolor.claimReward();
+
         assertEq(contributor1.balance, contributor1BalanceBefore + paymentPerPerson);
         assertEq(contributor2.balance, contributor2BalanceBefore + paymentPerPerson);
+        assertEq(wecolor.pendingRewards(contributor1), 0);
+        assertEq(wecolor.pendingRewards(contributor2), 0);
     }
 
     // Test: Treasury receives correct percentage
@@ -104,7 +118,7 @@ contract WeColorPaymentTest is Test {
         assertEq(wecolor.treasuryBalance(), expectedTreasury);
     }
 
-    // Test: RewardDistributed events emitted correctly
+    // Test: RewardAllocated events emitted correctly
     function testRewardDistributedEvents() public {
         address[] memory contributors = new address[](2);
         contributors[0] = contributor1;
@@ -120,10 +134,10 @@ contract WeColorPaymentTest is Test {
         vm.deal(buyer, 10 ether);
 
         vm.expectEmit(true, true, false, true);
-        emit RewardDistributed(20241024, contributor1, paymentPerPerson);
+        emit RewardAllocated(20241024, contributor1, paymentPerPerson);
 
         vm.expectEmit(true, true, false, true);
-        emit RewardDistributed(20241024, contributor2, paymentPerPerson);
+        emit RewardAllocated(20241024, contributor2, paymentPerPerson);
 
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
@@ -179,7 +193,7 @@ contract WeColorPaymentTest is Test {
         assertEq(wecolor.treasuryBalance(), treasuryAmount - withdrawAmount);
     }
 
-    // Test: Payment distribution with many contributors
+    // Test: Payment allocation with many contributors
     function testPaymentDistributionManyContributors() public {
         address[] memory contributors = new address[](10);
         for (uint i = 0; i < 10; i++) {
@@ -200,7 +214,17 @@ contract WeColorPaymentTest is Test {
         uint256 distributionAmount = price - treasuryAmount;
         uint256 paymentPerPerson = distributionAmount / 10;
 
-        // Check first and last contributor
+        // Check pending rewards for first and last contributor
+        assertEq(wecolor.pendingRewards(contributors[0]), paymentPerPerson);
+        assertEq(wecolor.pendingRewards(contributors[9]), paymentPerPerson);
+
+        // Claim and verify
+        vm.prank(contributors[0]);
+        wecolor.claimReward();
+
+        vm.prank(contributors[9]);
+        wecolor.claimReward();
+
         assertEq(contributors[0].balance, paymentPerPerson);
         assertEq(contributors[9].balance, paymentPerPerson);
     }

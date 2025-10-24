@@ -205,8 +205,6 @@ contract WeColorEdgeCasesTest is Test {
         address buyer = makeAddr("buyer");
         vm.deal(buyer, 10 ether);
 
-        uint256 balanceBefore0 = contributors[0].balance;
-
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
@@ -214,7 +212,13 @@ contract WeColorEdgeCasesTest is Test {
         uint256 distributionAmount = price - treasuryAmount;
         uint256 expectedPayment = distributionAmount / 3;
 
-        // Check payment received
+        // Check pending reward is allocated
+        assertEq(wecolor.pendingRewards(contributors[0]), expectedPayment);
+
+        // Claim and verify balance
+        uint256 balanceBefore0 = contributors[0].balance;
+        vm.prank(contributors[0]);
+        wecolor.claimReward();
         assertEq(contributors[0].balance, balanceBefore0 + expectedPayment);
     }
 
@@ -234,8 +238,6 @@ contract WeColorEdgeCasesTest is Test {
         address buyer = makeAddr("buyer");
         vm.deal(buyer, 10 ether);
 
-        uint256 balanceBefore = user1.balance;
-
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
@@ -243,7 +245,13 @@ contract WeColorEdgeCasesTest is Test {
         uint256 distributionAmount = price - treasuryAmount;
         uint256 paymentPerPerson = distributionAmount / 3;
 
-        // user1 should receive 3x payment (once for each entry)
+        // user1 should have 3x payment pending (once for each entry)
+        assertEq(wecolor.pendingRewards(user1), paymentPerPerson * 3);
+
+        // Claim and verify balance
+        uint256 balanceBefore = user1.balance;
+        vm.prank(user1);
+        wecolor.claimReward();
         assertEq(user1.balance, balanceBefore + (paymentPerPerson * 3));
     }
 }

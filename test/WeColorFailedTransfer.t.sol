@@ -15,7 +15,8 @@ contract MaliciousContract {
 
 /**
  * @title WeColorFailedTransferTest
- * @notice Tests for failed transfer scenarios to achieve 100% branch coverage
+ * @notice Tests for failed transfer scenarios with pull payment pattern
+ * @dev Pull payment pattern protects against malicious contributors - they can't block others
  */
 contract WeColorFailedTransferTest is Test {
     WeColor public wecolor;
@@ -35,21 +36,39 @@ contract WeColorFailedTransferTest is Test {
         maliciousContract = new MaliciousContract();
     }
 
-    // Test: Payment distribution fails when contributor cannot receive ETH
+    // Test: Malicious contract can't claim rewards but doesn't block others
     function testPaymentDistributionFailsWithMaliciousContract() public {
         address[] memory contributors = new address[](2);
         contributors[0] = goodContributor;
-        contributors[1] = address(maliciousContract); // This will reject ETH
+        contributors[1] = address(maliciousContract); // This will reject ETH when claiming
 
         wecolor.recordDailySnapshot(20241024, "#FF5733", contributors);
         uint256 price = wecolor.getDailyColor(20241024).price;
 
         vm.deal(buyer, 10 ether);
 
-        // This should fail because maliciousContract cannot receive ETH
-        vm.expectRevert("Failed to Send ETH");
+        // NFT purchase succeeds (rewards are only allocated, not transferred)
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
+
+        // Good contributor can claim successfully
+        uint256 reward = wecolor.pendingRewards(goodContributor);
+        assertTrue(reward > 0);
+
+        vm.prank(goodContributor);
+        wecolor.claimReward();
+        assertEq(goodContributor.balance, reward);
+
+        // Malicious contract has pending rewards but can't claim them
+        uint256 maliciousReward = wecolor.pendingRewards(address(maliciousContract));
+        assertTrue(maliciousReward > 0);
+
+        vm.expectRevert("Failed to send reward");
+        vm.prank(address(maliciousContract));
+        wecolor.claimReward();
+
+        // Malicious contract's rewards are still pending (not lost)
+        assertEq(wecolor.pendingRewards(address(maliciousContract)), maliciousReward);
     }
 
     // Test: Treasury withdrawal fails when owner cannot receive ETH
@@ -82,7 +101,7 @@ contract WeColorFailedTransferTest is Test {
         maliciousWeColor.withdrawTreasury(treasuryBalance);
     }
 
-    // Test: Payment distribution succeeds with all normal addresses
+    // Test: Payment allocation succeeds even with malicious contracts
     function testPaymentDistributionSucceedsWithNormalAddresses() public {
         address contributor1 = makeAddr("contributor1");
         address contributor2 = makeAddr("contributor2");
@@ -96,18 +115,26 @@ contract WeColorFailedTransferTest is Test {
 
         vm.deal(buyer, 10 ether);
 
-        uint256 balanceBefore1 = contributor1.balance;
-        uint256 balanceBefore2 = contributor2.balance;
-
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
+        // Verify both have pending rewards
+        assertTrue(wecolor.pendingRewards(contributor1) > 0);
+        assertTrue(wecolor.pendingRewards(contributor2) > 0);
+
+        // Both can claim successfully
+        vm.prank(contributor1);
+        wecolor.claimReward();
+
+        vm.prank(contributor2);
+        wecolor.claimReward();
+
         // Verify both received payment
-        assertTrue(contributor1.balance > balanceBefore1);
-        assertTrue(contributor2.balance > balanceBefore2);
+        assertTrue(contributor1.balance > 0);
+        assertTrue(contributor2.balance > 0);
     }
 
-    // Test: Multiple malicious contracts in contributors array
+    // Test: Multiple malicious contracts don't block NFT purchase
     function testMultipleMaliciousContributors() public {
         MaliciousContract malicious2 = new MaliciousContract();
 
@@ -121,13 +148,22 @@ contract WeColorFailedTransferTest is Test {
 
         vm.deal(buyer, 10 ether);
 
-        // Should fail on first malicious contract
-        vm.expectRevert("Failed to Send ETH");
+        // Purchase succeeds - rewards are allocated, not transferred
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
+
+        // All have pending rewards
+        assertTrue(wecolor.pendingRewards(goodContributor) > 0);
+        assertTrue(wecolor.pendingRewards(address(maliciousContract)) > 0);
+        assertTrue(wecolor.pendingRewards(address(malicious2)) > 0);
+
+        // Good contributor can claim
+        vm.prank(goodContributor);
+        wecolor.claimReward();
+        assertTrue(goodContributor.balance > 0);
     }
 
-    // Test: Malicious contract as first contributor
+    // Test: Malicious contract as first contributor doesn't block others
     function testMaliciousContractFirstInLine() public {
         address[] memory contributors = new address[](2);
         contributors[0] = address(maliciousContract); // Malicious first
@@ -138,13 +174,17 @@ contract WeColorFailedTransferTest is Test {
 
         vm.deal(buyer, 10 ether);
 
-        // Should fail immediately on first contributor
-        vm.expectRevert("Failed to Send ETH");
+        // Purchase succeeds
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
+
+        // Good contributor can still claim even though malicious is first
+        vm.prank(goodContributor);
+        wecolor.claimReward();
+        assertTrue(goodContributor.balance > 0);
     }
 
-    // Test: Malicious contract as last contributor
+    // Test: Malicious contract as last contributor doesn't block others
     function testMaliciousContractLastInLine() public {
         address contributor1 = makeAddr("contributor1");
 
@@ -157,15 +197,16 @@ contract WeColorFailedTransferTest is Test {
 
         vm.deal(buyer, 10 ether);
 
-        uint256 balanceBefore = contributor1.balance;
-
-        // Should fail on second (last) contributor
-        // First contributor doesn't get paid either due to revert
-        vm.expectRevert("Failed to Send ETH");
+        // Purchase succeeds
         vm.prank(buyer);
         wecolor.buyNft{value: price}(20241024);
 
-        // Verify first contributor didn't get paid (transaction reverted)
-        assertEq(contributor1.balance, balanceBefore);
+        // First contributor can claim successfully
+        vm.prank(contributor1);
+        wecolor.claimReward();
+        assertTrue(contributor1.balance > 0);
+
+        // Malicious contract still has pending rewards but can't claim
+        assertTrue(wecolor.pendingRewards(address(maliciousContract)) > 0);
     }
 }
