@@ -12,9 +12,9 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 contract WeColor is ERC721 {
     address public owner;
     uint256 public nextTokenId;
-    uint256 public constant PRICE_PER_CONTRIBUTOR = 0.001 ether;
-    uint256 public constant BASE_PRICE = 0.01 ether;
-    uint256 public constant TREASURY_PERCENTAGE = 10;
+    uint256 public pricePerContributor = 0.001 ether;
+    uint256 public basePrice = 0.01 ether;
+    uint256 public treasuryPercentage = 10;
     uint256 public treasuryBalance;
 
     DailyColor[] dailyColors;
@@ -37,6 +37,10 @@ contract WeColor is ERC721 {
     event NFTPurchased(uint256 indexed tokenId, uint256 indexed date, address buyer, uint256 price);
     event RewardDistributed(uint256 indexed date, address indexed contributor, uint256 amount);
     event TreasuryWithdrawn(address indexed owner, uint256 amount);
+    event BasePriceUpdated(uint256 oldPrice, uint256 newPrice);
+    event PricePerContributorUpdated(uint256 oldPrice, uint256 newPrice);
+    event TreasuryPercentageUpdated(uint256 oldPercentage, uint256 newPercentage);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     constructor() ERC721("WeColor", "WCLR") {
         owner = msg.sender;
@@ -64,7 +68,7 @@ contract WeColor is ERC721 {
         uint256 totalContributors = dateColor.contributors.length;
 
         // For treasury
-        uint256 treasuryAmount = (msg.value * TREASURY_PERCENTAGE) / 100;
+        uint256 treasuryAmount = (msg.value * treasuryPercentage) / 100;
         treasuryBalance += treasuryAmount;
 
         // The rest to be distributed to contributors
@@ -86,9 +90,9 @@ contract WeColor is ERC721 {
         address[] calldata contributors
     ) external onlyOwner {
         require(!dateToDailyColor[date].recorded, "Already recorded");
-        uint256 price = BASE_PRICE +
+        uint256 price = basePrice +
             contributors.length *
-            PRICE_PER_CONTRIBUTOR;
+            pricePerContributor;
 
         dateToDailyColor[date] = DailyColor({
             day: date,
@@ -161,6 +165,36 @@ contract WeColor is ERC721 {
 
     function getDailyColor(uint256 date) public view returns (DailyColor memory) {
         return dateToDailyColor[date];
+    }
+
+    /// @notice Update base price for NFTs
+    function setBasePrice(uint256 newPrice) external onlyOwner {
+        uint256 oldPrice = basePrice;
+        basePrice = newPrice;
+        emit BasePriceUpdated(oldPrice, newPrice);
+    }
+
+    /// @notice Update price per contributor
+    function setPricePerContributor(uint256 newPrice) external onlyOwner {
+        uint256 oldPrice = pricePerContributor;
+        pricePerContributor = newPrice;
+        emit PricePerContributorUpdated(oldPrice, newPrice);
+    }
+
+    /// @notice Update treasury percentage (max 100%)
+    function setTreasuryPercentage(uint256 newPercentage) external onlyOwner {
+        require(newPercentage <= 100, "Percentage must be <= 100");
+        uint256 oldPercentage = treasuryPercentage;
+        treasuryPercentage = newPercentage;
+        emit TreasuryPercentageUpdated(oldPercentage, newPercentage);
+    }
+
+    /// @notice Transfer ownership to a new owner
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner cannot be zero address");
+        address previousOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
     }
 
     /// @notice Owner to withdraw money from treasury
