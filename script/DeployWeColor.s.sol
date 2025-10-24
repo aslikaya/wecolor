@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {WeColor} from "../src/WeColor.sol";
 
-contract WeColorScript is Script {
+contract DeployWeColor is Script {
     WeColor public wecolor;
 
     function setUp() public {}
