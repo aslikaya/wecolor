@@ -1,0 +1,186 @@
+.container {
+  width: 100%;
+  padding: 2rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 82, 255, 0.15);
+}
+
+.loading {
+  height: 350px;
+  position: relative;
+}
+
+.shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.colorPreview {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card:hover .colorPreview {
+  height: 220px;
+}
+
+.colorOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover .colorOverlay {
+  opacity: 1;
+}
+
+.colorHex {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Monaco', 'Courier New', monospace;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.cardContent {
+  padding: 1.25rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.date {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.soldBadge {
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, var(--error) 0%, #DC2626 100%);
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: var(--background);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.stat:hover {
+  background: linear-gradient(135deg, rgba(0, 82, 255, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+  transform: scale(1.05);
+}
+
+.statIcon {
+  font-size: 1.25rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.emptyState h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.emptyState p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .colorPreview {
+    height: 180px;
+  }
+
+  .card:hover .colorPreview {
+    height: 200px;
+  }
+}
