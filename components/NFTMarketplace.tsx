@@ -46,8 +46,13 @@ export default function NFTMarketplace() {
         const dateKey = formatDate(date);
 
         try {
-          const dailyColor = await contract.getDailyColor(parseInt(dateKey));
-          if (dailyColor.recorded) {
+          // First check if this date is likely to exist (don't query too far back)
+          const dateNum = parseInt(dateKey);
+
+          const dailyColor = await contract.getDailyColor(dateNum);
+
+          // Only add if it's actually recorded (not empty)
+          if (dailyColor.recorded && dailyColor.contributors.length > 0) {
             nftList.push({
               date: dateKey,
               colorHex: dailyColor.colorHex,
@@ -58,7 +63,8 @@ export default function NFTMarketplace() {
             });
           }
         } catch (error) {
-          // Date not recorded yet
+          // Date not recorded yet or contract call failed, skip silently
+          console.log(`Skipping date ${dateKey}: not recorded`);
         }
       }
 
