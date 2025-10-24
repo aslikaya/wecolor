@@ -183,6 +183,8 @@ contract WeColorPaymentTest is Test {
     function testPaymentDistributionManyContributors() public {
         address[] memory contributors = new address[](10);
         for (uint i = 0; i < 10; i++) {
+            // casting to 'uint160' is safe because we're using test addresses with small values
+            // forge-lint: disable-next-line(unsafe-typecast)
             contributors[i] = address(uint160(1000 + i));
         }
 

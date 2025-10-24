@@ -83,6 +83,8 @@ contract WeColorAccessTest is Test {
 
         address[] memory attackers = new address[](5);
         for (uint i = 0; i < 5; i++) {
+            // casting to 'uint160' is safe because we're using test addresses with small values
+            // forge-lint: disable-next-line(unsafe-typecast)
             attackers[i] = address(uint160(2000 + i));
         }
 

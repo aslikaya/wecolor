@@ -175,7 +175,11 @@ contract WeColor is ERC721 {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this");
+        _onlyOwner();
         _;
+    }
+
+    function _onlyOwner() internal view {
+        require(msg.sender == owner, "Only owner can call this");
     }
 }

@@ -96,6 +96,8 @@ contract WeColorTest is Test {
 
         address[] memory contributors5 = new address[](5);
         for (uint i = 0; i < 5; i++) {
+            // casting to 'uint160' is safe because we're using test addresses with small values
+            // forge-lint: disable-next-line(unsafe-typecast)
             contributors5[i] = address(uint160(100 + i));
         }
         wecolor.recordDailySnapshot(20241025, "#00FF00", contributors5);
