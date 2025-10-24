@@ -1,35 +1,28 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { HexColorPicker } from "react-colorful";
 import styles from "./ColorPicker.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export default function ColorPicker() {
+  const { address, isConnected } = useAccount();
   const [color, setColor] = useState("#0052FF");
-  const [userId, setUserId] = useState<string>("");
-  const [walletAddress, setWalletAddress] = useState<string>("");
   const [hasSelected, setHasSelected] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    // Get or create user ID
-    let id = localStorage.getItem("wecolor_user_id");
-    if (!id) {
-      id = `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-      localStorage.setItem("wecolor_user_id", id);
+    if (address) {
+      checkTodaySelection(address);
     }
-    setUserId(id);
+  }, [address]);
 
-    // Check if user already selected today
-    checkTodaySelection(id);
-  }, []);
-
-  const checkTodaySelection = async (uid: string) => {
+  const checkTodaySelection = async (walletAddr: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/colors/my-color?userId=${uid}`);
+      const res = await fetch(`${API_URL}/api/colors/my-color?userId=${walletAddr}`);
       const data = await res.json();
       if (data.selected) {
         setHasSelected(true);
@@ -41,7 +34,10 @@ export default function ColorPicker() {
   };
 
   const handleSubmit = async () => {
-    if (!userId) return;
+    if (!address || !isConnected) {
+      setMessage({ type: "error", text: "Please connect your wallet first" });
+      return;
+    }
 
     setLoading(true);
     setMessage(null);
@@ -51,9 +47,9 @@ export default function ColorPicker() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
+          userId: address,
           color,
-          walletAddress: walletAddress || undefined,
+          walletAddress: address,
         }),
       });
 
@@ -94,6 +90,22 @@ export default function ColorPicker() {
     );
   }
 
+  if (!isConnected) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <h3 className={styles.title}>Select Your Daily Color</h3>
+          <p className={styles.description}>
+            Please connect your wallet to participate
+          </p>
+          <div className={styles.walletPrompt}>
+            <p>Connect your wallet using the button in the header to start selecting colors!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -119,23 +131,6 @@ export default function ColorPicker() {
             placeholder="#000000"
             maxLength={7}
           />
-        </div>
-
-        <div className={styles.walletInput}>
-          <label htmlFor="wallet" className={styles.label}>
-            Wallet Address (optional)
-          </label>
-          <input
-            id="wallet"
-            type="text"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            placeholder="0x..."
-            className={styles.input}
-          />
-          <span className={styles.hint}>
-            Required to receive rewards if this color is purchased as NFT
-          </span>
         </div>
 
         {message && (
