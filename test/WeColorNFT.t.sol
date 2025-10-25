@@ -46,7 +46,7 @@ contract WeColorNFTTest is Test {
         bytes memory uriBytes = bytes(uri);
         bytes memory prefix = bytes("data:application/json;base64,");
         bool hasPrefix = true;
-        for (uint i = 0; i < prefix.length && i < uriBytes.length; i++) {
+        for (uint256 i = 0; i < prefix.length && i < uriBytes.length; i++) {
             if (uriBytes[i] != prefix[i]) {
                 hasPrefix = false;
                 break;
@@ -166,13 +166,13 @@ contract WeColorNFTTest is Test {
         address[] memory contributors = new address[](1);
         contributors[0] = user1;
 
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             wecolor.recordDailySnapshot(20241024 + i, "#FF5733", contributors);
         }
 
         vm.deal(buyer, 10 ether);
 
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             uint256 price = wecolor.getDailyColor(20241024 + i).price;
             vm.prank(buyer);
             wecolor.buyNft{value: price}(20241024 + i);

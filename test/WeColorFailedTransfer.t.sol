@@ -11,7 +11,8 @@ import {WeColor} from "../src/WeColor.sol";
 contract MaliciousContract {
     // No receive() or fallback() - will reject all ETH transfers
     // This is intentional to test the "Failed to Send ETH" branch
-}
+
+    }
 
 /**
  * @title WeColorFailedTransferTest

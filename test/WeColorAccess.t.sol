@@ -82,13 +82,13 @@ contract WeColorAccessTest is Test {
         contributors[0] = owner;
 
         address[] memory attackers = new address[](5);
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             // casting to 'uint160' is safe because we're using test addresses with small values
             // forge-lint: disable-next-line(unsafe-typecast)
             attackers[i] = address(uint160(2000 + i));
         }
 
-        for (uint i = 0; i < attackers.length; i++) {
+        for (uint256 i = 0; i < attackers.length; i++) {
             vm.expectRevert("Only owner can call this");
             vm.prank(attackers[i]);
             wecolor.recordDailySnapshot(20241024 + i, "#FF5733", contributors);

@@ -95,7 +95,7 @@ contract WeColorTest is Test {
         assertEq(wecolor.getDailyColor(20241024).price, 0.01 ether + 0.001 ether);
 
         address[] memory contributors5 = new address[](5);
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             // casting to 'uint160' is safe because we're using test addresses with small values
             // forge-lint: disable-next-line(unsafe-typecast)
             contributors5[i] = address(uint160(100 + i));

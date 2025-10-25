@@ -92,21 +92,18 @@ contract WeColor is ERC721, ReentrancyGuard {
 
         pendingRewards[msg.sender] = 0;
 
-        (bool sent, ) = msg.sender.call{value: amount}("");
+        (bool sent,) = msg.sender.call{value: amount}("");
         require(sent, "Failed to send reward");
 
         emit RewardClaimed(msg.sender, amount);
     }
 
-    function recordDailySnapshot(
-        uint256 date,
-        string calldata colorHex,
-        address[] calldata contributors
-    ) external onlyOwner {
+    function recordDailySnapshot(uint256 date, string calldata colorHex, address[] calldata contributors)
+        external
+        onlyOwner
+    {
         require(!dateToDailyColor[date].recorded, "Already recorded");
-        uint256 price = basePrice +
-            contributors.length *
-            pricePerContributor;
+        uint256 price = basePrice + contributors.length * pricePerContributor;
 
         dateToDailyColor[date] = DailyColor({
             day: date,
@@ -127,28 +124,25 @@ contract WeColor is ERC721, ReentrancyGuard {
     function generateSvg(uint256 date) internal view returns (string memory) {
         DailyColor storage dailycolor = dateToDailyColor[date];
 
-        return
-            string(
-                abi.encodePacked(
-                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
-                    '<rect fill="',
-                    dailycolor.colorHex,
-                    '" width="400" height="400"/>',
-                    '<text x="200" y="50" text-anchor="middle" fill="white" font-size="24">WeColor</text>',
-                    '<text x="200" y="100" text-anchor="middle" fill="white" font-size="20">',
-                    Strings.toString(date),
-                    "</text>",
-                    '<text x="200" y="150" text-anchor="middle" fill="white" font-size="18">',
-                    Strings.toString(dailycolor.contributors.length),
-                    " contributors</text>",
-                    "</svg>"
-                )
-            );
+        return string(
+            abi.encodePacked(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
+                '<rect fill="',
+                dailycolor.colorHex,
+                '" width="400" height="400"/>',
+                '<text x="200" y="50" text-anchor="middle" fill="white" font-size="24">WeColor</text>',
+                '<text x="200" y="100" text-anchor="middle" fill="white" font-size="20">',
+                Strings.toString(date),
+                "</text>",
+                '<text x="200" y="150" text-anchor="middle" fill="white" font-size="18">',
+                Strings.toString(dailycolor.contributors.length),
+                " contributors</text>",
+                "</svg>"
+            )
+        );
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
         uint256 date = tokenIdToDate[tokenId];
         require(date != 0, "Token does not exist");
 
@@ -168,13 +162,7 @@ contract WeColor is ERC721, ReentrancyGuard {
             )
         );
 
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(bytes(json))
-                )
-            );
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
     }
 
     function getDailyColor(uint256 date) public view returns (DailyColor memory) {
@@ -216,7 +204,7 @@ contract WeColor is ERC721, ReentrancyGuard {
         require(amount <= treasuryBalance, "Insufficient treasury balance");
         treasuryBalance -= amount;
 
-        (bool sent, ) = owner.call{value: amount}("");
+        (bool sent,) = owner.call{value: amount}("");
         require(sent, "Failed to withdraw");
 
         emit TreasuryWithdrawn(owner, amount);

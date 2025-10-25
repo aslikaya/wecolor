@@ -61,7 +61,7 @@ contract WeColorEdgeCasesTest is Test {
     // Test: Record snapshot with maximum contributors (gas test)
     function testRecordSnapshotManyContributors() public {
         address[] memory contributors = new address[](100);
-        for (uint i = 0; i < 100; i++) {
+        for (uint256 i = 0; i < 100; i++) {
             // casting to 'uint160' is safe because we're using test addresses with small values
             // forge-lint: disable-next-line(unsafe-typecast)
             contributors[i] = address(uint160(1000 + i));
@@ -193,7 +193,7 @@ contract WeColorEdgeCasesTest is Test {
     // Test: Payment rounding with odd division
     function testPaymentRoundingOddDivision() public {
         address[] memory contributors = new address[](3);
-        for (uint i = 0; i < 3; i++) {
+        for (uint256 i = 0; i < 3; i++) {
             // casting to 'uint160' is safe because we're using test addresses with small values
             // forge-lint: disable-next-line(unsafe-typecast)
             contributors[i] = address(uint160(1000 + i));
