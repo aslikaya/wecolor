@@ -11,6 +11,7 @@ export async function GET() {
       address: process.env.NEXT_PUBLIC_BASE_BUILDER_ADDRESS || ""
     },
     miniapp: {
+      version: "1",
       name: "WeColor",
       url: appUrl,
       iconUrl: `${appUrl}/icon`,
