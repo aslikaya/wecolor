@@ -62,6 +62,10 @@ export default function Home() {
       </main>
 
       <footer className={styles.footer}>
+        <div className={styles.networkBadge}>
+          <span className={styles.networkDot}></span>
+          Currently on Base Sepolia Testnet
+        </div>
         <p>Built on Base • Powered by OnchainKit • Open Source</p>
       </footer>
     </div>
