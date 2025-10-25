@@ -22,7 +22,7 @@ export async function GET() {
       description: "Express your daily mood through color. Contribute to collective NFTs and earn rewards.",
       shortDescription: "Daily collective color NFTs",
       categories: ["art", "social", "nft"],
-      primaryCategory: "art",
+      primaryCategory: "art-creativity",
       tags: ["nft", "art", "collectible", "base", "onchain"]
     }
   };
