@@ -1,0 +1,10 @@
+backend/
+script/
+test/
+cache/
+out/
+lib/
+broadcast/
+*.sol
+foundry.toml
+remappings.txt
