@@ -15,8 +15,10 @@
     --foreground: #111827;
     --surface: #FFFFFF;
     --border: #E5E7EB;
+    --text-primary: #111827;
     --text-secondary: #6B7280;
     --text-tertiary: #9CA3AF;
+    --card-bg: #FFFFFF;
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -32,8 +34,10 @@
       --foreground: #F1F5F9;
       --surface: #1E293B;
       --border: #475569;
+      --text-primary: #F1F5F9;
       --text-secondary: #CBD5E1;
       --text-tertiary: #94A3B8;
+      --card-bg: #1E293B;
     }
   }
 

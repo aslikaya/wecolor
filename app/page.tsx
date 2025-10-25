@@ -4,6 +4,7 @@ import styles from "./page.module.css";
 import ColorPicker from "@/components/ColorPicker";
 import CollectiveColor from "@/components/CollectiveColor";
 import NFTMarketplace from "@/components/NFTMarketplace";
+import ClaimRewards from "@/components/ClaimRewards";
 
 export default function Home() {
   return (
@@ -38,6 +39,10 @@ export default function Home() {
 
         <section className={styles.section}>
           <CollectiveColor />
+        </section>
+
+        <section className={styles.section}>
+          <ClaimRewards />
         </section>
 
         <section className={styles.section}>
