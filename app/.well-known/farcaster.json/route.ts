@@ -19,8 +19,8 @@ export async function GET() {
       splashImageUrl: `${appUrl}/splash`,
       splashBackgroundColor: "#0052FF",
       homeUrl: appUrl,
-      description: "Express your daily mood through color. Contribute to collective NFTs and earn rewards on Base.",
-      shortDescription: "Daily collective color NFTs on Base",
+      description: "Express your daily mood through color. Contribute to collective NFTs and earn rewards.",
+      shortDescription: "Daily collective color NFTs",
       categories: ["art", "social", "nft"],
       primaryCategory: "art",
       tags: ["nft", "art", "collectible", "base", "onchain"]
