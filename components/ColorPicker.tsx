@@ -15,9 +15,15 @@ export default function ColorPicker() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
+    // Reset state when wallet changes
+    setHasSelected(false);
+    setSelectedColor("");
+    setMessage(null);
+
     if (address) {
       checkTodaySelection(address);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   const checkTodaySelection = async (walletAddr: string) => {
@@ -27,9 +33,14 @@ export default function ColorPicker() {
       if (data.selected) {
         setHasSelected(true);
         setSelectedColor(data.color);
+      } else {
+        setHasSelected(false);
+        setSelectedColor("");
       }
     } catch (error) {
       console.error("Error checking selection:", error);
+      setHasSelected(false);
+      setSelectedColor("");
     }
   };
 
