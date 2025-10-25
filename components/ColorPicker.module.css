@@ -71,21 +71,9 @@
   background: var(--background);
   border-radius: 1rem;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  touch-action: pan-y; /* Allow vertical scroll but optimize for color picker */
+  justify-content: center;
+  touch-action: pan-y;
   overscroll-behavior: contain;
-}
-
-.pickerHint {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  text-align: center;
-  padding: 0.5rem;
-  background: rgba(0, 82, 255, 0.05);
-  border-radius: 0.5rem;
-  border: 1px dashed rgba(0, 82, 255, 0.2);
 }
 
 .pickerWrapper :global(.react-colorful) {

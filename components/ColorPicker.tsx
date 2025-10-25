@@ -127,9 +127,6 @@ export default function ColorPicker() {
         </p>
 
         <div className={styles.pickerWrapper}>
-          <div className={styles.pickerHint}>
-            💡 Hold still while selecting color to prevent scrolling
-          </div>
           <HexColorPicker color={color} onChange={setColor} />
         </div>
 
