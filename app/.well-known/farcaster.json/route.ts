@@ -3,12 +3,12 @@ export async function GET() {
 
   const manifest = {
     accountAssociation: {
-      header: "TO_BE_FILLED", // Will be filled after account association
-      payload: "TO_BE_FILLED",
-      signature: "TO_BE_FILLED"
+      header: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_HEADER,
+      payload: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_PAYLOAD,
+      signature: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_SIGNATURE
     },
     baseBuilder: {
-      address: process.env.NEXT_PUBLIC_BASE_BUILDER_ADDRESS || "TO_BE_FILLED"
+      address: process.env.NEXT_PUBLIC_BASE_BUILDER_ADDRESS || ""
     },
     miniapp: {
       name: "WeColor",
