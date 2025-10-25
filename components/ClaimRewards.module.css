@@ -4,6 +4,27 @@
   margin: 0 auto;
 }
 
+.infoBox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 82, 255, 0.05);
+  border: 1px solid rgba(0, 82, 255, 0.2);
+  border-radius: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.infoIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.infoText {
+  flex: 1;
+}
+
 .card {
   background: var(--surface);
   border-radius: 1rem;

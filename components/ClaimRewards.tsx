@@ -128,6 +128,20 @@ export default function ClaimRewards() {
     );
   }
 
+  // Show minimal info if no rewards
+  if (!loading && parseFloat(pendingReward) === 0) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.infoBox}>
+          <span className={styles.infoIcon}>💰</span>
+          <span className={styles.infoText}>
+            Contribute to daily colors and earn rewards when NFTs are purchased
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -146,17 +160,17 @@ export default function ClaimRewards() {
                 {parseFloat(pendingReward).toFixed(6)} ETH
               </div>
               <div className={styles.amountUsd}>
-                {parseFloat(pendingReward) > 0 ? "Ready to claim" : "No rewards yet"}
+                Ready to claim
               </div>
             </div>
 
             <button
               onClick={handleClaimReward}
-              disabled={claiming || parseFloat(pendingReward) === 0}
+              disabled={claiming}
               className="btn btn-primary"
               style={{ width: "100%" }}
             >
-              {claiming ? "Claiming..." : parseFloat(pendingReward) > 0 ? "Claim Rewards" : "No Rewards Available"}
+              {claiming ? "Claiming..." : "Claim Rewards"}
             </button>
 
             <div className={styles.note}>

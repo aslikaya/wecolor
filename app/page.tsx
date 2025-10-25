@@ -28,8 +28,8 @@ export default function Home() {
             Express Your Daily Mood Through Color
           </h2>
           <p className={styles.heroDescription}>
-            Select a color each day. At 23:59, all colors blend into a unique collective NFT.
-            Purchase NFTs to support contributors and earn rewards.
+            Select a color each day. At 23:59 GMT+3, all colors blend into a unique collective NFT.
+            Purchase NFTs to support contributors.
           </p>
         </section>
 
