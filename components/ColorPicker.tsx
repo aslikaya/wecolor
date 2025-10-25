@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { HexColorPicker } from "react-colorful";
 import styles from "./ColorPicker.module.css";
@@ -13,7 +13,6 @@ export default function ColorPicker() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Reset state when wallet changes
@@ -28,24 +27,32 @@ export default function ColorPicker() {
   }, [address]);
 
   useEffect(() => {
-    // Prevent parent frame drag when touching color picker
-    const pickerElement = pickerRef.current;
-    if (!pickerElement) return;
+    // Disable body scroll when color picker is active (prevents Mini App frame drag)
+    if (!hasSelected && isConnected) {
+      // Save original styles
+      const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+      const originalWidth = document.body.style.width;
+      const originalHeight = document.body.style.height;
+      const originalTouchAction = document.body.style.touchAction;
 
-    const preventDrag = (e: TouchEvent) => {
-      e.stopPropagation();
-    };
+      // Lock body scroll - this prevents Mini App frame from being draggable
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.touchAction = 'none';
 
-    pickerElement.addEventListener('touchstart', preventDrag, { passive: false });
-    pickerElement.addEventListener('touchmove', preventDrag, { passive: false });
-    pickerElement.addEventListener('touchend', preventDrag, { passive: false });
-
-    return () => {
-      pickerElement.removeEventListener('touchstart', preventDrag);
-      pickerElement.removeEventListener('touchmove', preventDrag);
-      pickerElement.removeEventListener('touchend', preventDrag);
-    };
-  }, []);
+      return () => {
+        // Restore original styles when component unmounts or color is selected
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.width = originalWidth;
+        document.body.style.height = originalHeight;
+        document.body.style.touchAction = originalTouchAction;
+      };
+    }
+  }, [hasSelected, isConnected]);
 
   const checkTodaySelection = async (walletAddr: string) => {
     try {
@@ -146,7 +153,7 @@ export default function ColorPicker() {
           Choose a color that represents your mood today
         </p>
 
-        <div className={styles.pickerWrapper} ref={pickerRef}>
+        <div className={styles.pickerWrapper}>
           <HexColorPicker color={color} onChange={setColor} />
         </div>
 
