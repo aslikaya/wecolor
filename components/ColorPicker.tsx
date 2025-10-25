@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { HexColorPicker } from "react-colorful";
 import styles from "./ColorPicker.module.css";
@@ -13,6 +13,7 @@ export default function ColorPicker() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Reset state when wallet changes
@@ -25,6 +26,26 @@ export default function ColorPicker() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
+
+  useEffect(() => {
+    // Prevent parent frame drag when touching color picker
+    const pickerElement = pickerRef.current;
+    if (!pickerElement) return;
+
+    const preventDrag = (e: TouchEvent) => {
+      e.stopPropagation();
+    };
+
+    pickerElement.addEventListener('touchstart', preventDrag, { passive: false });
+    pickerElement.addEventListener('touchmove', preventDrag, { passive: false });
+    pickerElement.addEventListener('touchend', preventDrag, { passive: false });
+
+    return () => {
+      pickerElement.removeEventListener('touchstart', preventDrag);
+      pickerElement.removeEventListener('touchmove', preventDrag);
+      pickerElement.removeEventListener('touchend', preventDrag);
+    };
+  }, []);
 
   const checkTodaySelection = async (walletAddr: string) => {
     try {
@@ -125,7 +146,7 @@ export default function ColorPicker() {
           Choose a color that represents your mood today
         </p>
 
-        <div className={styles.pickerWrapper}>
+        <div className={styles.pickerWrapper} ref={pickerRef}>
           <HexColorPicker color={color} onChange={setColor} />
         </div>
 
