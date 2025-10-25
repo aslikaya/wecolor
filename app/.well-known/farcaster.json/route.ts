@@ -3,9 +3,9 @@ export async function GET() {
 
   const manifest = {
     accountAssociation: {
-      header: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_HEADER,
-      payload: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_PAYLOAD,
-      signature: process.env.NEXT_PUBLIC_ACCOUNT_ASSOCIATION_SIGNATURE
+      header: "eyJmaWQiOjI5NDY4OCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGI0RjFERERCYTE1QThjYTNBQzAwNTQxNzZjMEMxZTI2REJlRTU3NDEifQ",
+      payload: "eyJkb21haW4iOiJ3ZWNvbG9yLnZlcmNlbC5hcHAifQ",
+      signature: "RuvSgJ3pdbFhXp5KKzGWkBqHYPngPx3klV8T0Pu2M0cTARpT5"
     },
     baseBuilder: {
       address: process.env.NEXT_PUBLIC_BASE_BUILDER_ADDRESS || ""
