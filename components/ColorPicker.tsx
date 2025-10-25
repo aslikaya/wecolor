@@ -26,33 +26,6 @@ export default function ColorPicker() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
-  useEffect(() => {
-    // Disable body scroll when color picker is active (prevents Mini App frame drag)
-    if (!hasSelected && isConnected) {
-      // Save original styles
-      const originalOverflow = document.body.style.overflow;
-      const originalPosition = document.body.style.position;
-      const originalWidth = document.body.style.width;
-      const originalHeight = document.body.style.height;
-      const originalTouchAction = document.body.style.touchAction;
-
-      // Lock body scroll - this prevents Mini App frame from being draggable
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      document.body.style.touchAction = 'none';
-
-      return () => {
-        // Restore original styles when component unmounts or color is selected
-        document.body.style.overflow = originalOverflow;
-        document.body.style.position = originalPosition;
-        document.body.style.width = originalWidth;
-        document.body.style.height = originalHeight;
-        document.body.style.touchAction = originalTouchAction;
-      };
-    }
-  }, [hasSelected, isConnected]);
 
   const checkTodaySelection = async (walletAddr: string) => {
     try {
@@ -154,6 +127,9 @@ export default function ColorPicker() {
         </p>
 
         <div className={styles.pickerWrapper}>
+          <div className={styles.pickerHint}>
+            💡 Hold still while selecting color to prevent scrolling
+          </div>
           <HexColorPicker color={color} onChange={setColor} />
         </div>
 
