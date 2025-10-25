@@ -1,5 +1,7 @@
 "use client";
+import { useEffect } from "react";
 import { Wallet } from "@coinbase/onchainkit/wallet";
+import sdk from "@farcaster/miniapp-sdk";
 import styles from "./page.module.css";
 import ColorPicker from "@/components/ColorPicker";
 import CollectiveColor from "@/components/CollectiveColor";
@@ -7,6 +9,9 @@ import NFTMarketplace from "@/components/NFTMarketplace";
 import ClaimRewards from "@/components/ClaimRewards";
 
 export default function Home() {
+  useEffect(() => {
+    sdk.actions.ready();
+  }, []);
   return (
     <div className={styles.container}>
       <header className={styles.header}>
