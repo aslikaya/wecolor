@@ -23,6 +23,7 @@ export default function ClaimRewards() {
     if (address && isConnected) {
       loadPendingReward();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, isConnected]);
 
   const loadPendingReward = async () => {
@@ -67,8 +68,9 @@ export default function ClaimRewards() {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x14a34' }], // 84532 in hex
           });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
+        } catch (switchError) {
+          const error = switchError as { code?: number };
+          if (error.code === 4902) {
             try {
               await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
@@ -107,9 +109,10 @@ export default function ClaimRewards() {
 
       // Refresh pending reward
       await loadPendingReward();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error claiming reward:", error);
-      alert(error.message || "Failed to claim reward");
+      const err = error as { message?: string };
+      alert(err.message || "Failed to claim reward");
     } finally {
       setClaiming(false);
     }

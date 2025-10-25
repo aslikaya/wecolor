@@ -30,6 +30,7 @@ export default function NFTMarketplace() {
 
   useEffect(() => {
     loadNFTs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadNFTs = async () => {
@@ -63,7 +64,7 @@ export default function NFTMarketplace() {
               recorded: dailyColor.recorded,
             });
           }
-        } catch (error) {
+        } catch {
           // Date not recorded yet or contract call failed, skip silently
           console.log(`Skipping date ${dateKey}: not recorded`);
         }
@@ -111,9 +112,10 @@ export default function NFTMarketplace() {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x14a34' }], // 84532 in hex
           });
-        } catch (switchError: any) {
+        } catch (switchError) {
           // This error code indicates that the chain has not been added to MetaMask
-          if (switchError.code === 4902) {
+          const error = switchError as { code?: number };
+          if (error.code === 4902) {
             try {
               await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
@@ -152,9 +154,10 @@ export default function NFTMarketplace() {
 
       alert("NFT purchased successfully! 🎉");
       loadNFTs(); // Refresh list
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error buying NFT:", error);
-      alert(error.message || "Failed to purchase NFT");
+      const err = error as { message?: string };
+      alert(err.message || "Failed to purchase NFT");
     } finally {
       setBuying(null);
     }

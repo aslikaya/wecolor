@@ -88,7 +88,7 @@ export default function CollectiveColor() {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <h3 className={styles.title}>Today's Collective Color</h3>
+          <h3 className={styles.title}>Today&apos;s Collective Color</h3>
           <div className={styles.badge}>
             <span className={styles.count}>{todayData?.count || 0}</span>
             <span className={styles.label}>contributors</span>

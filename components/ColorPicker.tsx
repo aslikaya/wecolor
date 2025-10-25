@@ -62,7 +62,7 @@ export default function ColorPicker() {
         setHasSelected(true);
         setSelectedColor(color);
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ export default function ColorPicker() {
       <div className={styles.container}>
         <div className={`${styles.card} ${styles.selectedCard}`}>
           <div className={styles.checkmark}>✓</div>
-          <h3 className={styles.title}>You've Selected Your Color Today!</h3>
+          <h3 className={styles.title}>You&apos;ve Selected Your Color Today!</h3>
           <div className={styles.colorDisplay}>
             <div
               className={styles.colorPreview}
