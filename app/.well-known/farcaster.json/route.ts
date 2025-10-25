@@ -13,9 +13,9 @@ export async function GET() {
     miniapp: {
       name: "WeColor",
       url: appUrl,
-      iconUrl: `${appUrl}/icon.png`,
-      iconUrlSecondary: `${appUrl}/icon-secondary.png`,
-      splashImageUrl: `${appUrl}/splash.png`,
+      iconUrl: `${appUrl}/icon`,
+      iconUrlSecondary: `${appUrl}/icon-secondary`,
+      splashImageUrl: `${appUrl}/splash`,
       splashBackgroundColor: "#0052FF",
       homeUrl: appUrl,
       description: "Express your daily mood through color. Contribute to collective NFTs and earn rewards on Base.",

@@ -21,19 +21,19 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WeColor - Daily Collective Color NFT",
     description: "Express your daily mood through color. Contribute to collective NFTs and earn rewards on Base.",
-    images: [`${appUrl}/og-image.png`],
+    images: [`${appUrl}/og-image`],
   },
   other: {
     'fc:miniapp': JSON.stringify({
       version: 'next',
-      imageUrl: `${appUrl}/og-image.png`,
+      imageUrl: `${appUrl}/og-image`,
       button: {
         title: 'Select Your Color',
         action: {
           type: 'launch',
           name: 'WeColor',
           url: appUrl,
-          splashImageUrl: `${appUrl}/splash.png`,
+          splashImageUrl: `${appUrl}/splash`,
           splashBackgroundColor: '#0052FF'
         }
       }
