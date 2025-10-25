@@ -72,12 +72,15 @@
   border-radius: 1rem;
   display: flex;
   justify-content: center;
+  touch-action: none; /* Prevent scroll while using color picker */
+  overscroll-behavior: contain;
 }
 
 .pickerWrapper :global(.react-colorful) {
   width: 100% !important;
   max-width: 300px;
   height: 250px;
+  touch-action: none; /* Prevent scroll while dragging */
 }
 
 .pickerWrapper :global(.react-colorful__saturation) {
