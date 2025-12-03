@@ -26,19 +26,38 @@ CREATE INDEX IF NOT EXISTS idx_color_selections_wallet ON color_selections(walle
 ALTER TABLE color_selections ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Users can insert their own color selections
-CREATE POLICY "Users can insert their own color selections"
-  ON color_selections
-  FOR INSERT
-  WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'color_selections'
+    AND policyname = 'Users can insert their own color selections'
+  ) THEN
+    CREATE POLICY "Users can insert their own color selections"
+      ON color_selections
+      FOR INSERT
+      WITH CHECK (true);
+  END IF;
+END $$;
 
 -- RLS Policy: Anyone can read color selections (public data)
-CREATE POLICY "Anyone can read color selections"
-  ON color_selections
-  FOR SELECT
-  USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'color_selections'
+    AND policyname = 'Anyone can read color selections'
+  ) THEN
+    CREATE POLICY "Anyone can read color selections"
+      ON color_selections
+      FOR SELECT
+      USING (true);
+  END IF;
+END $$;
 
 -- Optional: Create a view for daily statistics
-CREATE OR REPLACE VIEW daily_stats AS
+CREATE OR REPLACE VIEW daily_stats
+WITH (security_invoker = true) AS
 SELECT
   date,
   COUNT(*) as selection_count,
