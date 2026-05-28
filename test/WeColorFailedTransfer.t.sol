@@ -4,15 +4,9 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {WeColor} from "../src/WeColor.sol";
 
-/**
- * @title MaliciousContract
- * @notice Contract that rejects ETH transfers to test failure branches
- */
-contract MaliciousContract {
-    // No receive() or fallback() - will reject all ETH transfers
-    // This is intentional to test the "Failed to Send ETH" branch
-
-    }
+/// @title MaliciousContract
+/// @notice Contract that rejects ETH transfers (no receive/fallback) to test failure branches
+contract MaliciousContract {}
 
 /**
  * @title WeColorFailedTransferTest
