@@ -23,10 +23,10 @@ export function setupDailySnapshotCron() {
       const result = await recordDailySnapshot(dateKey);
 
       if (result.success) {
-        console.log(`✅ Snapshot recorded successfully!`);
-        console.log(`Transaction hash: ${result.txHash}`);
+        console.log(`✅ Snapshot signed and stored successfully!`);
+        console.log(`Signature: ${result.signature?.substring(0, 20)}...`);
       } else {
-        console.error(`❌ Failed to record snapshot: ${result.error}`);
+        console.error(`❌ Failed to sign snapshot: ${result.error}`);
       }
     } catch (error) {
       console.error('❌ Cron job error:', error);

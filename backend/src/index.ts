@@ -55,6 +55,9 @@ app.listen(PORT, () => {
   console.log(`   - GET  /api/colors/today`);
   console.log(`   - GET  /api/colors/date/:date`);
   console.log(`   - POST /api/snapshot/record`);
+  console.log(`   - GET  /api/snapshot/buy-data/:date`);
+  console.log(`   - GET  /api/snapshot/available`);
+  console.log(`   - POST /api/snapshot/mark-minted`);
   console.log(`   - GET  /api/snapshot/status`);
   console.log(`   - GET  /api/snapshot/status/:date`);
   console.log(`\n⏰ Cron Jobs:`);

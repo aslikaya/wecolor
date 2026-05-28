@@ -77,3 +77,79 @@ COMMENT ON COLUMN color_selections.user_id IS 'User identifier (can be Farcaster
 COMMENT ON COLUMN color_selections.date IS 'Date in YYYYMMDD format';
 COMMENT ON COLUMN color_selections.color IS 'Hex color code (e.g., #FF5733)';
 COMMENT ON COLUMN color_selections.wallet_address IS 'Optional: User wallet address for on-chain rewards';
+
+-- ============================================================
+-- Daily Snapshots table (for lazy minting with signatures)
+-- Stores signed snapshot data off-chain until an NFT is purchased
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS daily_snapshots (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  date TEXT NOT NULL UNIQUE,
+  collective_color TEXT NOT NULL,
+  contributors JSONB NOT NULL,       -- array of wallet addresses
+  signature TEXT NOT NULL,           -- hex-encoded owner signature
+  minted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- Constraints
+  CONSTRAINT valid_snapshot_date_format CHECK (date ~ '^\d{8}$'),
+  CONSTRAINT valid_snapshot_color_format CHECK (collective_color ~ '^#[0-9A-Fa-f]{6}$')
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_snapshots_date ON daily_snapshots(date);
+CREATE INDEX IF NOT EXISTS idx_daily_snapshots_minted ON daily_snapshots(minted);
+
+ALTER TABLE daily_snapshots ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read snapshots (frontend needs this for marketplace)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'daily_snapshots'
+    AND policyname = 'Anyone can read daily snapshots'
+  ) THEN
+    CREATE POLICY "Anyone can read daily snapshots"
+      ON daily_snapshots
+      FOR SELECT
+      USING (true);
+  END IF;
+END $$;
+
+-- Backend can insert snapshots
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'daily_snapshots'
+    AND policyname = 'Service can insert daily snapshots'
+  ) THEN
+    CREATE POLICY "Service can insert daily snapshots"
+      ON daily_snapshots
+      FOR INSERT
+      WITH CHECK (true);
+  END IF;
+END $$;
+
+-- Backend can update snapshots (mark as minted)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'daily_snapshots'
+    AND policyname = 'Service can update daily snapshots'
+  ) THEN
+    CREATE POLICY "Service can update daily snapshots"
+      ON daily_snapshots
+      FOR UPDATE
+      USING (true);
+  END IF;
+END $$;
+
+COMMENT ON TABLE daily_snapshots IS 'Stores signed daily color snapshots for lazy NFT minting';
+COMMENT ON COLUMN daily_snapshots.date IS 'Date in YYYYMMDD format';
+COMMENT ON COLUMN daily_snapshots.collective_color IS 'Blended hex color from all contributors';
+COMMENT ON COLUMN daily_snapshots.contributors IS 'JSON array of contributor wallet addresses';
+COMMENT ON COLUMN daily_snapshots.signature IS 'Owner wallet signature for on-chain verification';
+COMMENT ON COLUMN daily_snapshots.minted IS 'Whether this snapshot has been purchased as an NFT';

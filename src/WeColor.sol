@@ -5,6 +5,8 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title WeColor
@@ -59,6 +61,54 @@ contract WeColor is ERC721, ReentrancyGuard {
         dateColor.tokenId = nextTokenId;
         dateColor.minted = true;
         dateColor.buyer = msg.sender;
+
+        emit NFTPurchased(nextTokenId, date, msg.sender, msg.value);
+
+        nextTokenId++;
+        allocatePayment(date);
+    }
+
+    /// @notice Buy an NFT with lazy recording — snapshot is recorded and minted in one transaction
+    /// @dev The owner signs (date, colorHex, contributors) off-chain; the buyer submits that signature
+    function buyNftWithSignature(
+        uint256 date,
+        string calldata colorHex,
+        address[] calldata contributors,
+        bytes calldata signature
+    ) external payable nonReentrant {
+        require(!dateToDailyColor[date].recorded, "Already recorded");
+        require(contributors.length > 0, "No contributors");
+
+        // Verify owner signature
+        bytes32 messageHash = keccak256(abi.encodePacked(date, colorHex, contributors));
+        bytes32 ethSignedHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        address signer = ECDSA.recover(ethSignedHash, signature);
+        require(signer == owner, "Invalid signature");
+
+        // Calculate price
+        uint256 price = basePrice + contributors.length * pricePerContributor;
+        require(msg.value >= price, "Insufficient funds");
+
+        // Record snapshot
+        dateToDailyColor[date] = DailyColor({
+            day: date,
+            colorHex: colorHex,
+            contributors: contributors,
+            price: price,
+            minted: false,
+            recorded: true,
+            tokenId: 0,
+            buyer: address(0)
+        });
+        dailyColors.push(dateToDailyColor[date]);
+        emit DailySnapshotRecorded(date, colorHex, contributors.length, price);
+
+        // Mint NFT
+        _mint(msg.sender, nextTokenId);
+        tokenIdToDate[nextTokenId] = date;
+        dateToDailyColor[date].tokenId = nextTokenId;
+        dateToDailyColor[date].minted = true;
+        dateToDailyColor[date].buyer = msg.sender;
 
         emit NFTPurchased(nextTokenId, date, msg.sender, msg.value);
 
